@@ -1,48 +1,49 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 
 import CardList from './components/card-list/card-list.component'
-import SearchBox from './components/search-box/search-box.component';
+import SearchBox from './components/search-box/search-box.component'
 import './App.css';
 
-const App = () => {
-  console.log('App render')
+import { getData } from './utils/data.utils';
 
-  const [monsters, setMonsters] = useState([]);
+export type Monster = {
+  id: string;
+  name: string;
+  email: string;
+}
+
+const App = () => {
+
+  const [monsters, setMonsters] = useState<Monster[]>([]);
   const [searchField, setSearchField] = useState('');
   const [filteredMonsters, setFilteredMonsters] = useState(monsters);
   const [title, setTitle] = useState('Monsters Rolodex');
 
-  const onSearchChange = ({ target }) => {
-    const searchFieldString = target.value.toLocaleLowerCase();
+  const onSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const searchFieldString = event.target.value.toLocaleLowerCase();
     setSearchField(searchFieldString);
   }
 
-  const onTitleChange = ({ target }) => {
-    const searchFieldString = target.value
+  const onTitleChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const searchFieldString = event.target.value
     setTitle(searchFieldString);
   }
 
-  const getMonsters = () => {
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then(response => response.json())
-      .then(responseJSON => {
-        setMonsters(responseJSON)
-      },
-      )
-  };
+  useEffect(() => {
+    const getMonsters = async () => {
+      const users = await getData<Monster[]>('https://jsonplaceholder.typicode.com/users')
+      setMonsters(users);
+    };
+    getMonsters()
+  }, []);
 
-  useEffect(getMonsters, []);
-
-  const filterMonsters = () => {
+  useEffect(() => {
     const newFilteredMonsters = monsters.filter(monster => {
-      return (
-        monster.name.toLocaleLowerCase().includes(searchField.toLocaleLowerCase())
-      )
+      return monster.name.toLocaleLowerCase().includes(searchField.toLocaleLowerCase())
     });
     setFilteredMonsters(newFilteredMonsters)
-  };
 
-  useEffect(filterMonsters, [monsters, searchField]);
+  }, [monsters, searchField]);
 
   return (
     <div className="App">
